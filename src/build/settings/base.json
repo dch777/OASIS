@@ -1,5 +1,5 @@
 {
-    "app_name": "OASIS",
+    "app_name": "OASYS",
     "author": "dchanana",
     "main_module": "src/main/python/main.py",
     "version": "0.0.0"
