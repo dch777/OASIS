@@ -1,2 +1,2 @@
-# OASIS
-### Optimization of Airfoil Systems In Simulations
+# OASYS
+### Optimization of Airfoil SYStems 
