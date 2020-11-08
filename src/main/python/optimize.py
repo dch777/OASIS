@@ -21,6 +21,3 @@ def getBestAirfoil(reynolds=1e6, iterations=20, angle=10):
     foil = airfoils.airfoils.Airfoil.NACA4(f"{nacaSet[max_idx]:04d}")
     foil.plot()
     return nacaSet[max_idx], liftDragRatio[max_idx]
-
-def graphAirfoilEfficiency(naca, reynolds=1e6, iterations=20, angle=10, angle_step=.5):
-    pass
