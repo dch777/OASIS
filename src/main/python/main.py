@@ -25,14 +25,10 @@ class Ui_OASYSADVANCED(object):
 
         return finalNACA
 
-
-    def updategraph(self, maxcamber, maxcamberpos, thickness, points):
-        foil = Airfoil.NACA4(self.NACACONVERTER(maxcamber, maxcamberpos, thickness), points)
-        print(maxcamber)
+    def updategraph(self, test):
+        foil = Airfoil.NACA4("0012")
+        print(test)
         foil.plot()
-
-
-
 
     #Setup for all UI elements
     def setupUi(self, OASYS):
@@ -67,16 +63,10 @@ class Ui_OASYSADVANCED(object):
         self.MAXCAMBERSLIDER.setTickInterval(10)
         self.MAXCAMBERSLIDER.setObjectName("MAXCAMBERSLIDER")
 
-        cambersliderval = 0
-        self.MAXCAMBERSLIDER.setValue(cambersliderval)
-
         #max camber display
         self.MAXCAMBERDISPLAY = QtWidgets.QLCDNumber(self.CONTAINER)
         self.MAXCAMBERDISPLAY.setGeometry(QtCore.QRect(650, 10, 131, 51))
         self.MAXCAMBERDISPLAY.setObjectName("MAXCAMBERDISPLAY")
-
-
-
 
         #thickness slider
         self.THICKNESSSLIDER = QtWidgets.QSlider(self.CONTAINER)
@@ -190,19 +180,15 @@ class Ui_OASYSADVANCED(object):
         self.UPDATEPLOTBUTTON.setGeometry(QtCore.QRect(130, 680, 91, 31))
         self.UPDATEPLOTBUTTON.setObjectName("UPDATEPLOTBUTTON")
 
-
-        #print(cambersliderval)
-
         self.MAXCAMBERSLIDER.valueChanged.connect(self.MAXCAMBERDISPLAY.display)
+        self.MAXCAMBERPOSITIONSLIDER.valueChanged.connect(self.MAXCAMBERPOSITIONDISPLAY.display)
+        self.NOPOINTSSLIDER.valueChanged.connect(self.POINTSDISPLAY.display)
+        self.THICKNESSSLIDER.valueChanged.connect(self.THICKNESSDISPLAY.display)
 
         cambersliderval = self.MAXCAMBERSLIDER.value()
         #self.MAXCAMBERDISPLAY.setProperty("intValue", cambersliderval)
 
-        foil = Airfoil.NACA4("2454")
-
-        #x = partial()
-
-        self.UPDATEPLOTBUTTON.clicked.connect(foil.plot)
+        self.UPDATEPLOTBUTTON.clicked.connect(self.updategraph, 3)
 
         self.TITLEOASISLABEL = QtWidgets.QLabel(self.centralwidget)
         self.TITLEOASISLABEL.setGeometry(QtCore.QRect(370, 0, 301, 71))
