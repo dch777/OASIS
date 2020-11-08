@@ -8,6 +8,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from airfoils import Airfoil
 from functools import partial
 import math
+import optimize
+
+reynolds = 100000000
 
 #CLASS OASYS ADVANCED PANEL
 class Ui_OASYSADVANCED(object):
@@ -16,6 +19,18 @@ class Ui_OASYSADVANCED(object):
     MAX_CAMBER_POSITION = 0
     THICKNESS_PERCENT = 0
     NUMBER_OF_POINTS = 0
+
+    def openBasic(self):
+        self.window = QtWidgets.QMainWindow()
+        self.ui = Ui_OASYS()
+        self.ui.setupUi(self.window)
+        self.window.show()
+
+    def resetValues(self):
+        self.MAXCAMBERPOSITIONSLIDER.setValue(0)
+        self.NOPOINTSSLIDER.setValue(0)
+        self.THICKNESSSLIDER.setValue(0)
+        self.MAXCAMBERSLIDER.setValue(0)
 
     def NACACONVERTER(self, maxcamber, maxcamberpos, thickness):
         m = math.floor(maxcamber/10)
@@ -129,6 +144,13 @@ class Ui_OASYSADVANCED(object):
         self.POINTSDISPLAY.setGeometry(QtCore.QRect(650, 290, 131, 51))
         self.POINTSDISPLAY.setObjectName("POINTSDISPLAY")
 
+        self.GOBACKBUTTON = QtWidgets.QPushButton(self.centralwidget)
+        self.GOBACKBUTTON.setGeometry(QtCore.QRect(840, 680, 91, 31))
+        self.GOBACKBUTTON.setObjectName("GOBACKBUTTON")
+
+        self.RESETVALUEBUTTON = QtWidgets.QPushButton(self.centralwidget)
+        self.RESETVALUEBUTTON.setGeometry(QtCore.QRect(710, 680, 91, 31))
+        self.RESETVALUEBUTTON.setObjectName("RESETVALUEBUTTON")
 
         self.ZERONINTEYLABEL = QtWidgets.QLabel(self.CONTAINER)
         self.ZERONINTEYLABEL.setGeometry(QtCore.QRect(300, 10, 321, 31))
@@ -185,6 +207,8 @@ class Ui_OASYSADVANCED(object):
         self.MAXCAMBERPOSITIONSLIDER.valueChanged.connect(self.MAXCAMBERPOSITIONDISPLAY.display)
         self.NOPOINTSSLIDER.valueChanged.connect(self.POINTSDISPLAY.display)
         self.THICKNESSSLIDER.valueChanged.connect(self.THICKNESSDISPLAY.display)
+        self.RESETVALUEBUTTON.pressed.connect(self.resetValues)
+        self.GOBACKBUTTON.pressed.connect(self.openBasic)
 
         cambersliderval = self.MAXCAMBERSLIDER.value()
         #self.MAXCAMBERDISPLAY.setProperty("intValue", cambersliderval)
@@ -220,22 +244,11 @@ class Ui_OASYSADVANCED(object):
         self.ADVANCEDCONTROLLABEL.setScaledContents(True)
         self.ADVANCEDCONTROLLABEL.setObjectName("ADVANCEDCONTROLLABEL")
 
-        self.VISUALIZE = QtWidgets.QPushButton(self.centralwidget)
-        self.VISUALIZE.setGeometry(QtCore.QRect(260, 680, 182, 31))
-        self.VISUALIZE.setObjectName("VISUALIZEBUTTON")
-
         """
         self.OPENPLOTBUTTON = QtWidgets.QPushButton(self.centralwidget)
         self.OPENPLOTBUTTON.setGeometry(QtCore.QRect(390, 680, 91, 31))
         self.OPENPLOTBUTTON.setObjectName("OPENPLOTBUTTON")
         """
-        self.GOBACKBUTTON = QtWidgets.QPushButton(self.centralwidget)
-        self.GOBACKBUTTON.setGeometry(QtCore.QRect(840, 680, 91, 31))
-        self.GOBACKBUTTON.setObjectName("GOBACKBUTTON")
-
-        self.RESETVALUEBUTTON = QtWidgets.QPushButton(self.centralwidget)
-        self.RESETVALUEBUTTON.setGeometry(QtCore.QRect(710, 680, 91, 31))
-        self.RESETVALUEBUTTON.setObjectName("RESETVALUEBUTTON")
 
         OASYS.setCentralWidget(self.centralwidget)
 
@@ -252,7 +265,6 @@ class Ui_OASYSADVANCED(object):
         _translate = QtCore.QCoreApplication.translate
         OASYS.setWindowTitle(_translate("OASYS", "OASYS"))
         self.UPDATEPLOTBUTTON.setText(_translate("OASYS", "Update Plot"))
-        self.VISUALIZE.setText(_translate("OASYS", "Visualize lift drag relationship"))
         #self.OPENPLOTBUTTON.setText(_translate("OASYS", "Open Plot"))
 
 
@@ -266,24 +278,10 @@ class MplCanvas(FigureCanvasQTAgg):
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
 
-
-class UI_MainWindow2(QtWidgets.QMainWindow):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-
-    def __init__(self, *args, **kwargs):
-        super(UI_MainWindow2, self).__init__(*args, **kwargs)
-
-        # Create the maptlotlib FigureCanvas object,
-        # which defines a single set of axes as self.axes.
-        sc = MplCanvas(self, width=5, height=4, dpi=100)
-        sc.axes.plot([0,1,2,3,4], [10,1,20,3,40])
-        self.setCentralWidget(sc)
-
-        self.show()
-
-class Ui_OASYS(object):
+#OUTPUTWINDOW
+class Ui_OASYSOUTPUT(object):
     def setupUi(self, OASYS):
+        naca, ld = optimize.getBestAirfoil(reynolds, iterations=20, angle=10)
         OASYS.setObjectName("OASYS")
         OASYS.resize(844, 591)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -303,25 +301,25 @@ class Ui_OASYS(object):
         self.label_7 = QtWidgets.QLabel(self.frame)
         self.label_7.setGeometry(QtCore.QRect(470, 210, 61, 31))
         self.label_7.setText("")
-        self.label_7.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\imgs/ms.png"))
+        self.label_7.setPixmap(QtGui.QPixmap("imgs/ms.png"))
         self.label_7.setScaledContents(True)
         self.label_7.setObjectName("label_7")
         self.ANGLEOFATTACK = QtWidgets.QLabel(self.frame)
         self.ANGLEOFATTACK.setGeometry(QtCore.QRect(10, 80, 471, 41))
-        self.ANGLEOFATTACK.setText("")
-        self.ANGLEOFATTACK.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\../OASYS/src/main/python/imgs/AOA.png"))
+        self.ANGLEOFATTACK.setText(str(math.floor(ld[1])))
+        self.ANGLEOFATTACK.setPixmap(QtGui.QPixmap("imgs/AOA.png"))
         self.ANGLEOFATTACK.setScaledContents(True)
         self.ANGLEOFATTACK.setObjectName("ANGLEOFATTACK")
         self.OPTIMALNACANUMBER = QtWidgets.QLabel(self.frame)
         self.OPTIMALNACANUMBER.setGeometry(QtCore.QRect(20, 140, 241, 41))
         self.OPTIMALNACANUMBER.setText("")
-        self.OPTIMALNACANUMBER.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\../OASYS/src/main/python/imgs/NACA airfoil.png"))
+        self.OPTIMALNACANUMBER.setPixmap(QtGui.QPixmap("imgs/NACA airfoil.png"))
         self.OPTIMALNACANUMBER.setScaledContents(True)
         self.OPTIMALNACANUMBER.setObjectName("OPTIMALNACANUMBER")
         self.LDRLABEL = QtWidgets.QLabel(self.frame)
         self.LDRLABEL.setGeometry(QtCore.QRect(20, 200, 241, 41))
         self.LDRLABEL.setText("")
-        self.LDRLABEL.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\../OASYS/src/main/python/imgs/ld ratio.png"))
+        self.LDRLABEL.setPixmap(QtGui.QPixmap("imgs/ld_ratio.png"))
         self.LDRLABEL.setScaledContents(True)
         self.LDRLABEL.setObjectName("LDRLABEL")
         self.VIEWGRAPHBUTTON = QtWidgets.QPushButton(self.frame)
@@ -330,40 +328,43 @@ class Ui_OASYS(object):
         self.VELOCITYOPTIMAL = QtWidgets.QLCDNumber(self.frame)
         self.VELOCITYOPTIMAL.setGeometry(QtCore.QRect(550, 70, 131, 51))
         self.VELOCITYOPTIMAL.setObjectName("VELOCITYOPTIMAL")
+        self.VELOCITYOPTIMAL.display(math.floor(ld[1]))
         self.NACANUMBER = QtWidgets.QLCDNumber(self.frame)
         self.NACANUMBER.setGeometry(QtCore.QRect(550, 130, 131, 51))
         self.NACANUMBER.setObjectName("NACANUMBER")
+        self.NACANUMBER.display(f"{naca:04d}")
         self.BESTLDRATIO = QtWidgets.QLCDNumber(self.frame)
         self.BESTLDRATIO.setGeometry(QtCore.QRect(550, 190, 131, 51))
         self.BESTLDRATIO.setObjectName("BESTLDRATIO")
+        self.BESTLDRATIO.display(math.floor(ld[0]))
         self.DASHH = QtWidgets.QLabel(self.frame)
         self.DASHH.setGeometry(QtCore.QRect(270, 140, 281, 31))
         self.DASHH.setText("")
-        self.DASHH.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\../OASYS/src/main/python/imgs/dash.png"))
+        self.DASHH.setPixmap(QtGui.QPixmap("imgs/dash.png"))
         self.DASHH.setScaledContents(False)
         self.DASHH.setObjectName("DASHH")
         self.DASH = QtWidgets.QLabel(self.frame)
         self.DASH.setGeometry(QtCore.QRect(480, 80, 61, 31))
         self.DASH.setText("")
-        self.DASH.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\../OASYS/src/main/python/imgs/dash.png"))
+        self.DASH.setPixmap(QtGui.QPixmap("imgs/dash.png"))
         self.DASH.setScaledContents(False)
         self.DASH.setObjectName("DASH")
         self.DASHHH = QtWidgets.QLabel(self.frame)
         self.DASHHH.setGeometry(QtCore.QRect(270, 210, 281, 31))
         self.DASHHH.setText("")
-        self.DASHHH.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\../OASYS/src/main/python/imgs/dash.png"))
+        self.DASHHH.setPixmap(QtGui.QPixmap("imgs/dash.png"))
         self.DASHHH.setScaledContents(False)
         self.DASHHH.setObjectName("DASHHH")
         self.OASYSMAIN = QtWidgets.QLabel(self.centralwidget)
         self.OASYSMAIN.setGeometry(QtCore.QRect(250, 0, 301, 71))
         self.OASYSMAIN.setText("")
-        self.OASYSMAIN.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\../OASYS/src/main/python/imgs/OASYS.png"))
+        self.OASYSMAIN.setPixmap(QtGui.QPixmap("imgs/OASYS.png"))
         self.OASYSMAIN.setScaledContents(True)
         self.OASYSMAIN.setObjectName("OASYSMAIN")
         self.OASYSFULL = QtWidgets.QLabel(self.centralwidget)
         self.OASYSFULL.setGeometry(QtCore.QRect(40, 70, 741, 41))
         self.OASYSFULL.setText("")
-        self.OASYSFULL.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\../OASYS/src/main/python/imgs/Oasys full.png"))
+        self.OASYSFULL.setPixmap(QtGui.QPixmap("imgs/Oasys full.png"))
         self.OASYSFULL.setScaledContents(True)
         self.OASYSFULL.setObjectName("OASYSFULL")
         self.OUTPUTWINDOW = QtWidgets.QLabel(self.centralwidget)
@@ -375,7 +376,7 @@ class Ui_OASYS(object):
         self.OUTPUTWINDOW.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.OUTPUTWINDOW.setStyleSheet("font-color: \"#000000\"")
         self.OUTPUTWINDOW.setText("")
-        self.OUTPUTWINDOW.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\../OASYS/src/main/python/imgs/output.png"))
+        self.OUTPUTWINDOW.setPixmap(QtGui.QPixmap("imgs/output.png"))
         self.OUTPUTWINDOW.setScaledContents(True)
         self.OUTPUTWINDOW.setObjectName("OUTPUTWINDOW")
         OASYS.setCentralWidget(self.centralwidget)
@@ -393,6 +394,19 @@ class Ui_OASYS(object):
 
 #basic optimization 
 class Ui_OASYS(object):
+    def openOutput(self):
+        self.window = QtWidgets.QMainWindow()
+        self.ui = Ui_OASYSOUTPUT()
+        self.ui.setupUi(self.window)
+        self.window.show()
+        reynolds = self.REYNOLDSSLIDER.value()
+
+    def openAdvanced(self):
+        self.window = QtWidgets.QMainWindow()
+        self.ui = Ui_OASYSADVANCED()
+        self.ui.setupUi(self.window)
+        self.window.show()
+
     def setupUi(self, OASYS):
         OASYS.setObjectName("OASYS")
         OASYS.resize(844, 591)
@@ -413,7 +427,7 @@ class Ui_OASYS(object):
         self.label_3 = QtWidgets.QLabel(self.frame)
         self.label_3.setGeometry(QtCore.QRect(10, 50, 141, 31))
         self.label_3.setText("")
-        self.label_3.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\imgs/Reynolds Number.png"))
+        self.label_3.setPixmap(QtGui.QPixmap("imgs/Reynolds Number.png"))
         self.label_3.setScaledContents(True)
         self.label_3.setObjectName("label_3")
         self.REYNOLDSDISPLAY = QtWidgets.QLCDNumber(self.frame)
@@ -423,6 +437,8 @@ class Ui_OASYS(object):
         self.REYNOLDSSLIDER.setGeometry(QtCore.QRect(170, 50, 289, 22))
         self.REYNOLDSSLIDER.setOrientation(QtCore.Qt.Horizontal)
         self.REYNOLDSSLIDER.setObjectName("REYNOLDSSLIDER")
+        self.REYNOLDSSLIDER.setMinimum(100)
+        self.REYNOLDSSLIDER.setMaximum(100000000)
         self.DENSITYSLIDER = QtWidgets.QSlider(self.frame)
         self.DENSITYSLIDER.setGeometry(QtCore.QRect(170, 130, 289, 22))
         self.DENSITYSLIDER.setOrientation(QtCore.Qt.Horizontal)
@@ -434,25 +450,25 @@ class Ui_OASYS(object):
         self.label_4 = QtWidgets.QLabel(self.frame)
         self.label_4.setGeometry(QtCore.QRect(10, 130, 121, 31))
         self.label_4.setText("")
-        self.label_4.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\imgs/density.png"))
+        self.label_4.setPixmap(QtGui.QPixmap("imgs/density.png"))
         self.label_4.setScaledContents(True)
         self.label_4.setObjectName("label_4")
         self.label_5 = QtWidgets.QLabel(self.frame)
         self.label_5.setGeometry(QtCore.QRect(10, 220, 121, 31))
         self.label_5.setText("")
-        self.label_5.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\imgs/velocity.png"))
+        self.label_5.setPixmap(QtGui.QPixmap("imgs/velocity.png"))
         self.label_5.setScaledContents(True)
         self.label_5.setObjectName("label_5")
         self.label_6 = QtWidgets.QLabel(self.frame)
         self.label_6.setGeometry(QtCore.QRect(470, 130, 81, 31))
         self.label_6.setText("")
-        self.label_6.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\imgs/kgm3.png"))
+        self.label_6.setPixmap(QtGui.QPixmap("imgs/kgm3.png"))
         self.label_6.setScaledContents(True)
         self.label_6.setObjectName("label_6")
         self.label_7 = QtWidgets.QLabel(self.frame)
         self.label_7.setGeometry(QtCore.QRect(470, 210, 61, 31))
         self.label_7.setText("")
-        self.label_7.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\imgs/ms.png"))
+        self.label_7.setPixmap(QtGui.QPixmap("imgs/ms.png"))
         self.label_7.setScaledContents(True)
         self.label_7.setObjectName("label_7")
         self.DENSITYDISPLAY = QtWidgets.QLCDNumber(self.frame)
@@ -467,13 +483,13 @@ class Ui_OASYS(object):
         self.OASYSHEAD = QtWidgets.QLabel(self.centralwidget)
         self.OASYSHEAD.setGeometry(QtCore.QRect(250, 0, 301, 71))
         self.OASYSHEAD.setText("")
-        self.OASYSHEAD.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\imgs/OASYS.png"))
+        self.OASYSHEAD.setPixmap(QtGui.QPixmap("imgs/OASYS.png"))
         self.OASYSHEAD.setScaledContents(True)
         self.OASYSHEAD.setObjectName("OASYSHEAD")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
         self.label_2.setGeometry(QtCore.QRect(40, 70, 741, 41))
         self.label_2.setText("")
-        self.label_2.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\imgs/Oasys full.png"))
+        self.label_2.setPixmap(QtGui.QPixmap("imgs/Oasys full.png"))
         self.label_2.setScaledContents(True)
         self.label_2.setObjectName("label_2")
         self.OPTTEXT = QtWidgets.QLabel(self.centralwidget)
@@ -485,7 +501,7 @@ class Ui_OASYS(object):
         self.OPTTEXT.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.OPTTEXT.setStyleSheet("font-color: \"#000000\"")
         self.OPTTEXT.setText("")
-        self.OPTTEXT.setPixmap(QtGui.QPixmap("C:\\Kadhir\\Mystuff\\kadhir\\Coding\\Python\\ucstuff\\imgs/optimization system.png"))
+        self.OPTTEXT.setPixmap(QtGui.QPixmap("imgs/optimization system.png"))
         self.OPTTEXT.setScaledContents(True)
         self.OPTTEXT.setObjectName("OPTTEXT")
         self.ADVANCEDOPTIONS = QtWidgets.QPushButton(self.centralwidget)
@@ -496,6 +512,11 @@ class Ui_OASYS(object):
         self.statusbar.setObjectName("statusbar")
         OASYS.setStatusBar(self.statusbar)
 
+        self.REYNOLDSSLIDER.valueChanged.connect(self.REYNOLDSDISPLAY.display)
+        self.VELOCITYSLIDER.valueChanged.connect(self.VELOCITYDISPLAY.display)
+        self.DENSITYSLIDER.valueChanged.connect(self.DENSITYDISPLAY.display)
+        self.OUTPUTBUTTON.pressed.connect(self.openOutput)
+        self.ADVANCEDOPTIONS.pressed.connect(self.openAdvanced)
         self.retranslateUi(OASYS)
         QtCore.QMetaObject.connectSlotsByName(OASYS)
 

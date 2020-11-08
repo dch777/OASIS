@@ -24,5 +24,3 @@ def getBestAirfoil(reynolds=1e6, iterations=20, angle=10):
 
 def graphAirfoilEfficiency(naca, reynolds=1e6, iterations=20, angle=10, angle_step=.5):
     pass
-
-print(getBestAirfoil(reynolds=1e8, angle=20))
